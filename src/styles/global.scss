@@ -1,0 +1,47 @@
+* {
+  .floating {
+    animation: float 4.5s ease-in-out infinite;
+  }
+
+  .floating-reverse {
+    animation: float-reverse 5s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translatey(0px);
+    }
+    50% {
+      transform: translatey(-20px);
+    }
+    100% {
+      transform: translatey(0px);
+    }
+  }
+
+  @keyframes float-reverse {
+    0% {
+      transform: translatey(0px);
+    }
+    50% {
+      transform: translatey(15px);
+    }
+    100% {
+      transform: translatey(0px);
+    }
+  }
+
+  &::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #292F3F;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #373E4E;
+    border-radius: 2rem;
+  }
+}
