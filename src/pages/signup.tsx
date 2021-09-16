@@ -16,31 +16,37 @@ import guySvg from '../assets/guy.svg';
 import laptopSvg from '../assets/laptop.svg';
 import logo from '../assets/logo.svg';
 
-type SignInFormData = {
+type SignUpFormData = {
   email: string;
   password: string;
+  passwordConfirmation: string;
 }
 
 const signInFormSchema = yup.object().shape({
   email: yup.string().required('E-mail obrigatório').email('E-mail inválido'),
-  password: yup.string().required('Senha obrigatória')
+  password: yup.string().min(6, 'A senha deve possuir no mínimo 6 caracteres').required('Senha obrigatória'),
+  passwordConfirmation: yup.string().oneOf([yup.ref('password'), null], 'As senhas não são iguais')
 });
 
-export default function Home() {
-  const { signIn } = useAuth();
+export default function SignUp() {
+  const { signUp } = useAuth();
 
   const { register, handleSubmit, formState } = useForm({
     resolver: yupResolver(signInFormSchema)
   });
 
-  const handleSignIn: SubmitHandler<SignInFormData> = async (data) => {
-    await signIn({ email: data.email, password: data.password });
+  const handleSignUp: SubmitHandler<SignUpFormData> = async (data) => {
+    await signUp({
+      email: data.email,
+      password: data.password,
+      passwordConfirmation: data.passwordConfirmation
+    });
   }
 
   return (
     <>
       <Head>
-        <title>Timos | Login</title>
+        <title>Timos | Cadastro</title>
       </Head>
 
       <Flex
@@ -77,7 +83,7 @@ export default function Home() {
             bg="blue.700"
             borderRadius="5"
             direction="column"
-            onSubmit={handleSubmit(handleSignIn)}
+            onSubmit={handleSubmit(handleSignUp)}
           >
             <Stack spacing="4">
               <Image src={logo} width={80} height={80} />
@@ -87,7 +93,7 @@ export default function Home() {
                 fontSize="1.5rem"
                 fontWeight="medium"
               >
-                Login
+                Cadastro
               </Text>
 
               <Input 
@@ -107,19 +113,24 @@ export default function Home() {
                 error={formState.errors.password}
                 {...register('password')}
               />
+
+              <Input 
+                placeholder="Confirmar senha"
+                type="password" 
+                w="100%"
+                icon={FiLock}
+                error={formState.errors.passwordConfirmation}
+                {...register('passwordConfirmation')}
+              />
             </Stack>
 
             <Stack spacing="4" align="center" mt="8">
               <Button 
                 type="submit"
-                title="Entrar" 
+                title="Criar conta" 
                 size="lg" 
                 width={{ base: '100%', md: '50%' }}
               />
-
-              <Link color="gray.300">
-                Esqueci minha senha
-              </Link>
 
               <Flex width="100%" justify="space-between" align="center">
                 <Divider borderColor="gray.300" width="45%" />
@@ -128,10 +139,10 @@ export default function Home() {
               </Flex>
 
               <Text color="gray.300" align="center">
-                Não possui uma conta?  
-                <NextLink href="/signup">
+                Já possui uma conta?  
+                <NextLink href="/">
                   <Link color="blue.100" ml="1">
-                    Crie uma agora
+                    Entre agora
                   </Link>
                 </NextLink>
               </Text>

@@ -1,3 +1,4 @@
+import { useToast } from '@chakra-ui/toast';
 import Router from 'next/router';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
@@ -13,8 +14,15 @@ type SignInCredentials = {
   password: string;
 }
 
+type SignUpCredentials = {
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
 type AuthContextData = {
   signIn: (credentials: SignInCredentials) => Promise<void>;
+  signUp: (credentials: SignUpCredentials) => Promise<void>;
   signOut: () => void;
   isAuthenticated: boolean;
   user: User | undefined; 
@@ -36,6 +44,7 @@ export function signOut() {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User>();
   const isAuthenticated = !!user;
+  const toast = useToast();
 
   useEffect(() => {
     const { 'timos.token': token } = parseCookies();
@@ -71,13 +80,65 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api.defaults.headers['Authorization'] = `Bearer ${token}`;
 
       // router.push('/dashboard');
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      toast({
+        title: 'Erro',
+        description: err.response.data.message,
+        status: 'error',
+        position: 'top-right',
+        isClosable: true,
+      });
+    }
+  }
+
+  async function signUp({ email, password, passwordConfirmation }: SignUpCredentials) {
+    try {
+      const response = await api.post('/users', {
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+      });
+
+      const { token, refresh_token, id } = response.data;
+      
+      setCookie(undefined, 'timos.token', token, {
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: '/'
+      });
+      setCookie(undefined, 'timos.refresh_token', refresh_token, {
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        path: '/'
+      });
+
+      setUser({
+        id,
+        email
+      });
+
+      api.defaults.headers['Authorization'] = `Bearer ${token}`;
+
+      toast({
+        title: 'Sucesso',
+        description: 'Conta criada com sucesso',
+        status: 'success',
+        position: 'top-right',
+        isClosable: true,
+      });
+
+      Router.push('/');
+    } catch (err: any) {
+      toast({
+        title: 'Erro',
+        description: err.response.data.message,
+        status: 'error',
+        position: 'top-right',
+        isClosable: true,
+      });
     }
   }
 
   return (
-    <AuthContext.Provider value={{ signIn, signOut, isAuthenticated, user }}>
+    <AuthContext.Provider value={{ signIn, signUp, signOut, isAuthenticated, user }}>
       {children}
     </AuthContext.Provider>
   )
