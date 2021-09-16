@@ -8,7 +8,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { BsDot } from 'react-icons/bs';
 import { FiLock, FiMail } from 'react-icons/fi';
 
-import { api } from 'services/api';
+import { useAuth } from 'hooks/useAuth';
 import { Input } from 'components/Input';
 import { Button } from 'components/Button';
 
@@ -27,6 +27,7 @@ const signInFormSchema = yup.object().shape({
 });
 
 export default function Home() {
+  const { signIn } = useAuth()
   const toast = useToast();
 
   const { register, handleSubmit, formState } = useForm({
@@ -35,7 +36,7 @@ export default function Home() {
 
   const handleSignIn: SubmitHandler<SignInFormData> = async (data) => {
     try {
-      const response = await api.post('/session', data);
+      await signIn({ email: data.email, password: data.password });
 
       toast({
         title: 'Sucesso',
